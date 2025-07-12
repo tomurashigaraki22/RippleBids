@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^0.525.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-qr-code": "^2.0.18",
+    "react-router-dom": "^7.6.3",
     "tailwindcss-animate": "^1.0.7",
     "xrpl": "^4.3.0",
     "xrpl-wallet-kit": "^0.1.31",
