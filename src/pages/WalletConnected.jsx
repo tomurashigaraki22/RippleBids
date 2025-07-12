@@ -1,43 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Copy, Wallet, LinkIcon, RefreshCcw } from "lucide-react";
 import QRCode from "react-qr-code";
+import { Client } from "xrpl";
+
+const LOCAL_KEY = "rippleBridgeProgress";
+
 
 function WalletConnected() {
   const [searchParams] = useSearchParams();
   const address = searchParams.get("address");
+  const navigate = useNavigate()
   const network = searchParams.get("network");
 
   const [balance, setBalance] = useState(null);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [balanceError, setBalanceError] = useState(null);
   const [evmWallet, setEvmWallet] = useState(null);
+    const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
-  const getBalance = async (addr) => {
-    setLoadingBalance(true);
-    setBalanceError(null);
-    try {
-      const res = await fetch("https://s.altnet.rippletest.net:51234", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          method: "account_info",
-          params: [{ account: addr, ledger_index: "validated" }],
-        }),
-      });
-      const json = await res.json();
-      if (json.result && json.result.account_data) {
-        const bal = parseFloat(json.result.account_data.Balance) / 1_000_000;
-        setBalance(bal.toFixed(6));
-      } else {
-        setBalanceError("No account data found.");
-      }
-    } catch (e) {
-      setBalanceError("Failed to fetch XRP balance.");
-      console.error(e);
-    }
-    setLoadingBalance(false);
-  };
+
+  const getBalance = async (address) => {
+    await xrplClient.connect();
+    const response = await xrplClient.request({
+        command: 'account_info',
+        account: address,
+        ledger_index: 'validated',
+    });
+    await xrplClient.disconnect();
+    console.log("Response: ", (response.result.account_data.Balance/1_000_000).toString())
+    setBalance((response.result.account_data.Balance/1_000_000).toString())
+
+    return (parseFloat(response.result.account_data.Balance) / 1_000_000).toString(); // Convert drops to XRP
+};
 
   useEffect(() => {
     if (address) getBalance(address);
@@ -119,7 +114,15 @@ function WalletConnected() {
             🔁 Ready to bridge XRP to EVM wallet<br />
             <span className="font-medium">From:</span> {shorten(address)}<br />
             <span className="font-medium">To:</span> {shorten(evmWallet)}
+            <button
+                onClick={() => navigate(`/bridge?xrp=${address}&evm=${evmWallet}`)}
+                className="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl shadow-lg transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Bridge Now!
+            </button>
+
           </div>
+
         )}
       </div>
     </div>

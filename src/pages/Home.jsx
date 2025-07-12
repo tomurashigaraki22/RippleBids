@@ -32,6 +32,9 @@ const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {
   implicit: true
 });
 
+const LOCAL_KEY = "rippleBridgeProgress";
+
+
 
 const getBalance = async (address) => {
   await xrplClient.connect();
@@ -79,6 +82,8 @@ const HomePage = () => {
           address: state.me.account,
           network: 'testnet',
         });
+
+        localStorage.setItem(LOCAL_KEY, xrplWallet)
 
         const balance = await getBalance(state.me.account);
         setXrpBalance(balance);

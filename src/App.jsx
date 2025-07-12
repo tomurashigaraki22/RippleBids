@@ -25,6 +25,7 @@ import { EsupportedWallet, Networks, XRPLKit } from "xrpl-wallet-kit"
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom"
 import WalletConnected from "./pages/WalletConnected";
 import HomePage from "./pages/Home";
+import BridgeXRP from "./pages/BridgeXRP";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
 const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
@@ -56,6 +57,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/wallet-connected" element={<WalletConnected />} />
+        <Route path="/bridge" element={<BridgeXRP/>}/>
       </Routes>
     </BrowserRouter>
   )
