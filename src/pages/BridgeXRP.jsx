@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CheckCircle, Loader2, ArrowRight, AlertTriangle } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -12,17 +12,20 @@ function BridgeXRP() {
   const [bridgeStatus, setBridgeStatus] = useState("idle");
   const [error, setError] = useState(null);
 
+  const isValidXRP = xrpWallet?.startsWith("r") && xrpWallet?.length >= 25;
+  const isValidEVM = /^0x[a-fA-F0-9]{40}$/.test(evmWallet);
+
   const handleBridge = async () => {
-    if (!xrpWallet || !evmWallet || !amount || isNaN(parseFloat(amount))) {
-      toast.error("Missing or invalid inputs.");
+    if (!isValidXRP || !isValidEVM || !amount || isNaN(parseFloat(amount))) {
+      toast.error("Invalid wallet address or amount.");
       return;
     }
 
     try {
       setBridgeStatus("pending");
-      toast.loading("Bridging XRP... Please wait.");
+      toast.loading("Bridging XRP via Squid...");
 
-      const res = await fetch("https://snap.xrplevm.org/bridge", {
+      const response = await fetch("https://snap.xrplevm.org/bridge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -33,24 +36,23 @@ function BridgeXRP() {
         }),
       });
 
-      const data = await res.json();
-
+      const data = await response.json();
       toast.dismiss();
 
-      if (!res.ok) {
-        toast.error(data?.error || "Bridge failed");
+      if (!response.ok) {
+        toast.error(data?.error || "Bridge failed.");
         setBridgeStatus("error");
-        setError(data?.error || "Bridge failed");
+        setError(data?.error || "Bridge failed.");
         return;
       }
 
       toast.success("Bridge initiated successfully!");
       setBridgeStatus("success");
-
+      setAmount(""); // clear input
     } catch (err) {
       toast.dismiss();
-      console.error(err);
-      toast.error("Unexpected error during bridge.");
+      console.error("Bridge error:", err);
+      toast.error("Unexpected error occurred.");
       setBridgeStatus("error");
       setError("Unexpected error during bridge.");
     }
@@ -59,19 +61,20 @@ function BridgeXRP() {
   const shorten = (addr) => addr?.slice(0, 6) + "..." + addr?.slice(-4);
 
   return (
-    <div className="min-h-screen bg-white px-4 py-8 flex flex-col items-center sm:px-6">
+    <div className="min-h-screen bg-white px-4 py-6 sm:py-10 flex flex-col items-center">
       <Toaster position="top-center" />
+      <div className="w-full max-w-md bg-gray-50 shadow-xl rounded-2xl p-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+          🔁 Bridge XRP to Ethereum
+        </h1>
 
-      <div className="w-full max-w-md shadow-xl bg-gray-50 rounded-2xl p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">🔁 Bridge XRP</h1>
-
-        <div className="text-sm mb-4 space-y-2">
-          <div className="flex justify-between items-center">
+        <div className="text-sm mb-4 space-y-3">
+          <div className="flex justify-between">
             <span className="text-gray-700 font-medium">From (XRPL):</span>
             <span className="text-gray-800">{shorten(xrpWallet)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700 font-medium">To (EVM):</span>
+          <div className="flex justify-between">
+            <span className="text-gray-700 font-medium">To (Ethereum):</span>
             <span className="text-gray-800">{shorten(evmWallet)}</span>
           </div>
         </div>
@@ -83,31 +86,31 @@ function BridgeXRP() {
           <input
             type="number"
             min="0"
+            inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 text-sm"
+            placeholder="Enter amount"
           />
         </div>
 
         <button
           disabled={bridgeStatus === "pending"}
           onClick={handleBridge}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl shadow-lg flex justify-center items-center space-x-2 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl shadow flex justify-center items-center space-x-2 transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {bridgeStatus === "pending" ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <ArrowRight className="w-4 h-4" />
           )}
-          <span>
-            {bridgeStatus === "pending" ? "Bridging..." : "Bridge Now!"}
-          </span>
+          <span>{bridgeStatus === "pending" ? "Bridging..." : "Bridge Now"}</span>
         </button>
 
         {bridgeStatus === "success" && (
           <div className="mt-4 text-green-700 text-sm flex items-center space-x-2">
             <CheckCircle className="w-5 h-5" />
-            <span>Bridge complete. Funds should appear on EVM side shortly.</span>
+            <span>Bridge successful. Check EVM wallet shortly.</span>
           </div>
         )}
 
