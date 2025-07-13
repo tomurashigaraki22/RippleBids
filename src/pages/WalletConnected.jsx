@@ -26,6 +26,7 @@ function WalletConnected() {
   const xrplClient = new Client("wss://s.altnet.rippletest.net");
 
   const getBalance = async (addr) => {
+    console.log("gettingn")
     setLoadingBalance(true);
     try {
       await xrplClient.connect();
