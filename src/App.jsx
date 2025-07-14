@@ -52,25 +52,6 @@ createWeb3Modal({
 });
 
 
-const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {
-  redirectUrl: window.location.origin,  // This will use the current URL as redirect
-  rememberJwt: true,
-  storage: window.localStorage,
-  implicit: true
-});
-
-
-const getBalance = async (address) => {
-  await xrplClient.connect();
-  const response = await xrplClient.request({
-    command: 'account_info',
-    account: address,
-    ledger_index: 'validated',
-  });
-  await xrplClient.disconnect();
-
-  return (parseFloat(response.result.account_data.Balance) / 1_000_000).toString(); // Convert drops to XRP
-};
 
 function App() {
   

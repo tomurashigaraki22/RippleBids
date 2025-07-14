@@ -47,6 +47,8 @@ const getBalance = async (address) => {
   return (parseFloat(response.result.account_data.Balance) / 1_000_000).toString(); // Convert drops to XRP
 };
 
+
+
 const HomePage = () => {
     const [currentStep, setCurrentStep] = useState(1)
   const [xrplWallet, setXrplWallet] = useState(null)
