@@ -29,6 +29,29 @@ import BridgeXRP from "./pages/BridgeXRP";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
 const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
+const projectId = '7f999d777dd494df9a3038f609665cea'; // get this from https://cloud.walletconnect.com
+
+const metadata = {
+  name: 'RippleBids',
+  description: 'Bridge XRP to EVM',
+  url: 'https://ripplebids.pxxl.pro',
+};
+
+const chains = [sepolia];
+
+const wagmiConfig = defaultWagmiConfig({
+  chains,
+  projectId,
+  metadata,
+});
+
+createWeb3Modal({
+  wagmiConfig,
+  projectId,
+  chains
+});
+
+
 const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {
   redirectUrl: window.location.origin,  // This will use the current URL as redirect
   rememberJwt: true,

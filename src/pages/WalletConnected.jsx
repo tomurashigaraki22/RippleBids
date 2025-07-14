@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Copy, Wallet, LinkIcon, RefreshCcw } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Client } from "xrpl";
-import WalletConnectProvider from "@walletconnect/web3-provider";
-import Web3 from "web3";
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { injected } from 'wagmi/connectors';
 
 const LOCAL_KEY = "rippleBridgeProgress";
 const SEPOLIA_CHAIN_ID_DEC = 11155111;
@@ -19,9 +19,11 @@ function WalletConnected() {
   const [balance, setBalance] = useState(null);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [balanceError, setBalanceError] = useState(null);
-  const [evmWallet, setEvmWallet] = useState(null);
   const [connecting, setConnecting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { address: evmWallet, isConnected } = useAccount();
+  const { connect, isPending } = useConnect({ connector: injected() });
+  const { disconnect } = useDisconnect();
 
   const xrplClient = new Client("wss://s.altnet.rippletest.net");
 
@@ -53,52 +55,20 @@ function WalletConnected() {
     if (address) getBalance(address);
   }, [address]);
 
-  const connectEvmWallet = async () => {
-    setConnecting(true);
-    try {
-      if (isMobile) {
-        // WalletConnect for mobile
-        const provider = new WalletConnectProvider({
-          rpc: {
-            [SEPOLIA_CHAIN_ID_DEC]: "https://rpc.sepolia.org",
-          },
-          chainId: SEPOLIA_CHAIN_ID_DEC,
-        });
+const connectEvmWallet = async () => {
+  try {
+    const result = await connect();
+    const chainId = result?.chain?.id;
 
-        await provider.enable();
-        const web3 = new Web3(provider);
-        const accounts = await web3.eth.getAccounts();
-        setEvmWallet(accounts[0]);
-
-        // Optional: Listen to disconnect
-        provider.on("disconnect", () => {
-          setEvmWallet(null);
-        });
-      } else {
-        // MetaMask for desktop
-        if (!window.ethereum) {
-          window.open("https://metamask.io", "_blank");
-          return;
-        }
-
-        const chainId = await window.ethereum.request({ method: "eth_chainId" });
-        if (chainId !== SEPOLIA_CHAIN_ID_HEX) {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
-          });
-        }
-
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        setEvmWallet(accounts[0]);
-      }
-    } catch (e) {
-      console.error("EVM wallet connection error:", e);
-      alert("Failed to connect wallet. Make sure you're using Sepolia Testnet.");
-    } finally {
-      setConnecting(false);
+    if (chainId !== SEPOLIA_CHAIN_ID_DEC) {
+      await switchChain({ chainId: SEPOLIA_CHAIN_ID_DEC });
     }
-  };
+  } catch (error) {
+    console.error("EVM wallet connection error:", error);
+    alert("Failed to connect wallet. Make sure you're using Sepolia Testnet.");
+  }
+};
+
 
   const shorten = (addr) => addr?.slice(0, 6) + "..." + addr?.slice(-4);
 
