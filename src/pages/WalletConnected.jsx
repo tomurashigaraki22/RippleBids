@@ -3,10 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Copy, Wallet, LinkIcon, RefreshCcw } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Client } from "xrpl";
+import { useSwitchChain } from "wagmi";
 import { sepolia } from "@wagmi/chains";
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { switchChain } from "wagmi/actions";
 
 const LOCAL_KEY = "rippleBridgeProgress";
 const SEPOLIA_CHAIN_ID_DEC = 11155111;
@@ -15,6 +15,8 @@ const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7";
 function WalletConnected() {
   const [searchParams] = useSearchParams();
   const address = searchParams.get("address");
+  const {switchChain} = useSwitchChain();
+  const { disconnect } = useDisconnect()
   const network = searchParams.get("network");
   const navigate = useNavigate();
 
@@ -24,8 +26,7 @@ function WalletConnected() {
   const [connecting, setConnecting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { address: evmWallet, isConnected } = useAccount();
-  const { connect, isPending } = useConnect({ connector: injected() });
-  const { disconnect } = useDisconnect();
+  const { connectAsync, isPending, connectors, connect } = useConnect();
 
 
   const getBalance = async (addr) => {
@@ -59,21 +60,61 @@ function WalletConnected() {
 
 const connectEvmWallet = async () => {
   try {
-    const result = await connect();
-    console.log("Result: ", result)
-    const chainId = result?.chain?.id;
+    setConnecting(true);
+    console.log("Connectors: ", connectors)
 
-    if (chainId !== SEPOLIA_CHAIN_ID_DEC) {
-      await switchChain({
-        chainId: SEPOLIA_CHAIN_ID_DEC,
-      });
+    const metamaskConnector = connectors.find(
+      (c) => c.id === "metaMaskSDK"
+    );
 
+    if (!metamaskConnector) {
+      alert("MetaMask connector not found.");
+      return;
     }
+
+    const res = await connectAsync({ connector: metamaskConnector });
+    console.log("Connected:", res);
+
+    if (!res || !res.accounts?.length) {
+      alert("Failed to connect MetaMask.");
+      return;
+    }
+
+    // Check current chain
+    const currentChainIdHex = await window.ethereum?.request({ method: 'eth_chainId' });
+    const currentChainId = parseInt(currentChainIdHex, 16);
+
+    if (currentChainId !== SEPOLIA_CHAIN_ID_DEC) {
+      try {
+        await switchChain({
+          chainId: SEPOLIA_CHAIN_ID_DEC,
+          addEthereumChainParameter: {
+            chainName: "Sepolia Testnet",
+            nativeCurrency: {
+              name: "SepoliaETH",
+              symbol: "ETH",
+              decimals: 18,
+            },
+            rpcUrls: ["https://rpc.sepolia.org"],
+            blockExplorerUrls: ["https://sepolia.etherscan.io"],
+          },
+        });
+      } catch (err) {
+        console.error("Error switching chain:", err);
+        alert("Please switch to Sepolia manually in MetaMask.");
+      }
+    }
+
   } catch (error) {
-    console.error("EVM wallet connection error:", error);
-    alert("Failed to connect wallet. Make sure you're using Sepolia Testnet.");
+    console.error("MetaMask connection error:", error);
+    alert("Failed to connect MetaMask. Ensure MetaMask is installed and on Sepolia.");
+  } finally {
+    setConnecting(false);
   }
 };
+
+
+
 
 
   const shorten = (addr) => addr?.slice(0, 6) + "..." + addr?.slice(-4);
@@ -118,24 +159,36 @@ const connectEvmWallet = async () => {
         </div>
 
         <hr className="my-4" />
+{!evmWallet ? (
+  <div className="flex flex-col space-y-3">
+    <h2 className="text-lg font-semibold text-gray-800">Connect EVM-Compatible Wallet</h2>
+    <button
+      onClick={connectEvmWallet}
+      disabled={connecting}
+      className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition disabled:opacity-50"
+    >
+      <LinkIcon className="w-4 h-4" />
+      <span>{connecting ? "Connecting..." : "Connect MetaMask"}</span>
+    </button>
+  </div>
+) : (
+  <div className="flex flex-col space-y-3">
+    <h2 className="text-lg font-semibold text-gray-800">Connected to MetaMask</h2>
+    <div className="flex items-center space-x-2">
+      <span className="text-sm text-gray-600 truncate">{evmWallet.address}</span>
+      <button
+        onClick={() => disconnect()}
+        className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg text-sm transition"
+      >
+        Disconnect
+      </button>
+    </div>
+  </div>
+)}
 
-        {!evmWallet ? (
-          <div className="flex flex-col space-y-3">
-            <h2 className="text-lg font-semibold text-gray-800">Connect EVM-Compatible Wallet</h2>
-            <button
-              onClick={connectEvmWallet}
-              disabled={connecting}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition disabled:opacity-50"
-            >
-              <LinkIcon className="w-4 h-4" />
-              <span>{connecting ? "Connecting..." : "Connect Wallet"}</span>
-            </button>
-          </div>
-        ) : (
-          <div className="text-sm text-green-700 bg-green-100 py-2 px-4 rounded-xl">
-            ✅ EVM Wallet Connected: {shorten(evmWallet)}
-          </div>
-        )}
+
+
+
 
         {/* Bridge logic placeholder */}
         {evmWallet && address && (

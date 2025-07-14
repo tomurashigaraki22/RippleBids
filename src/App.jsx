@@ -28,8 +28,9 @@ import HomePage from "./pages/Home";
 import BridgeXRP from "./pages/BridgeXRP";
 import { sepolia as sepoliaBase } from "@wagmi/chains";
 import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi";
-import { createConfig, WagmiConfig } from "wagmi";
+import { createConfig, injected, WagmiConfig } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { metaMask, safe, walletConnect } from "wagmi/connectors";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
 const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
@@ -59,11 +60,18 @@ const wagmiConfig = createConfig({
   chains,
   projectId,
   metadata,
+  connectors: [
+    injected(),
+    walletConnect({ projectId }),
+    metaMask(),
+    safe(),
+  ],
   enableWalletConnect: true
 });
 
 createWeb3Modal({
   wagmiConfig,
+  allWallets: true,
   projectId,
   chains
 });
