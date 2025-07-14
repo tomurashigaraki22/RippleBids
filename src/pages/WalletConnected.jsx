@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Copy, Wallet, LinkIcon, RefreshCcw } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Client } from "xrpl";
+import { sepolia } from "viem/chains";
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 
