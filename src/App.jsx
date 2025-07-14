@@ -26,6 +26,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "reac
 import WalletConnected from "./pages/WalletConnected";
 import HomePage from "./pages/Home";
 import BridgeXRP from "./pages/BridgeXRP";
+import { sepolia } from "viem/chains";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
 const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
