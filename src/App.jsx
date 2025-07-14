@@ -26,7 +26,10 @@ import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "reac
 import WalletConnected from "./pages/WalletConnected";
 import HomePage from "./pages/Home";
 import BridgeXRP from "./pages/BridgeXRP";
-import { sepolia } from "viem/chains";
+import { sepolia as sepoliaBase } from "@wagmi/chains";
+import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi";
+import { createConfig, WagmiConfig } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
 const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
@@ -38,12 +41,25 @@ const metadata = {
   url: 'https://ripplebids.pxxl.pro',
 };
 
+const sepolia = {
+  ...sepoliaBase,
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.sepolia.org'],
+    },
+    public: {
+      http: ['https://rpc.sepolia.org'],
+    },
+  },
+};
+
 const chains = [sepolia];
 
-const wagmiConfig = defaultWagmiConfig({
+const wagmiConfig = createConfig({
   chains,
   projectId,
   metadata,
+  enableWalletConnect: true
 });
 
 createWeb3Modal({
@@ -51,6 +67,10 @@ createWeb3Modal({
   projectId,
   chains
 });
+const queryClient = new QueryClient();
+
+
+
 
 
 
@@ -59,11 +79,15 @@ function App() {
 
   return(
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/wallet-connected" element={<WalletConnected />} />
-        <Route path="/bridge" element={<BridgeXRP/>}/>
-      </Routes>
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfig config={wagmiConfig}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/wallet-connected" element={<WalletConnected />} />
+            <Route path="/bridge" element={<BridgeXRP/>}/>
+          </Routes>
+        </WagmiConfig>
+      </QueryClientProvider>
     </BrowserRouter>
   )
 }

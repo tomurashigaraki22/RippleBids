@@ -23,6 +23,7 @@ import { XummPkce } from "xumm-oauth2-pkce";
 import { EsupportedWallet, Networks, XRPLKit } from "xrpl-wallet-kit"
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom"
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
+import { sepolia } from "@wagmi/chains";
 const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
 
 const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {

@@ -3,9 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Copy, Wallet, LinkIcon, RefreshCcw } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Client } from "xrpl";
-import { sepolia } from "viem/chains";
+import { sepolia } from "@wagmi/chains";
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
+import { switchChain } from "wagmi/actions";
 
 const LOCAL_KEY = "rippleBridgeProgress";
 const SEPOLIA_CHAIN_ID_DEC = 11155111;
@@ -26,30 +27,30 @@ function WalletConnected() {
   const { connect, isPending } = useConnect({ connector: injected() });
   const { disconnect } = useDisconnect();
 
-  const xrplClient = new Client("wss://s.altnet.rippletest.net");
 
   const getBalance = async (addr) => {
-    console.log("gettingn")
-    setLoadingBalance(true);
-    try {
-      await xrplClient.connect();
-      const res = await xrplClient.request({
-        command: "account_info",
-        account: addr,
-        ledger_index: "validated",
-      });
-      const drops = res.result.account_data.Balance;
-      const xrp = parseFloat(drops) / 1_000_000;
-      setBalance(xrp.toFixed(6));
-      setBalanceError(null);
-    } catch (err) {
-      console.error("XRP balance error:", err);
-      setBalanceError("Error fetching balance");
-    } finally {
-      xrplClient.disconnect();
-      setLoadingBalance(false);
-    }
-  };
+  console.log("getting balance");
+  setLoadingBalance(true);
+  const client = new Client("wss://s.altnet.rippletest.net"); // ✅ Move inside
+  try {
+    await client.connect();
+    const res = await client.request({
+      command: "account_info",
+      account: addr,
+      ledger_index: "validated",
+    });
+    const drops = res.result.account_data.Balance;
+    const xrp = parseFloat(drops) / 1_000_000;
+    setBalance(xrp.toFixed(6));
+    setBalanceError(null);
+  } catch (err) {
+    console.error("XRP balance error:", err);
+    setBalanceError("Error fetching balance");
+  } finally {
+    client.disconnect();
+    setLoadingBalance(false);
+  }
+};
 
   useEffect(() => {
     setIsMobile(/iPhone|Android|iPad|iPod/i.test(navigator.userAgent));
@@ -59,10 +60,14 @@ function WalletConnected() {
 const connectEvmWallet = async () => {
   try {
     const result = await connect();
+    console.log("Result: ", result)
     const chainId = result?.chain?.id;
 
     if (chainId !== SEPOLIA_CHAIN_ID_DEC) {
-      await switchChain({ chainId: SEPOLIA_CHAIN_ID_DEC });
+      await switchChain({
+        chainId: SEPOLIA_CHAIN_ID_DEC,
+      });
+
     }
   } catch (error) {
     console.error("EVM wallet connection error:", error);
