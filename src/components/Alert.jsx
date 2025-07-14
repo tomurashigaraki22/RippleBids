@@ -1,20 +1,20 @@
 const Alert = ({ children, variant = "default", className = "" }) => {
-  const baseClasses = "relative w-full rounded-lg border p-4"
+  const baseClasses = "relative w-full rounded-lg border p-4";
 
   const variants = {
-    default: "bg-white border-gray-200 text-gray-900",
-    warning: "bg-yellow-50 border-yellow-200 text-yellow-900",
-    error: "bg-red-50 border-red-200 text-red-900",
-    success: "bg-green-50 border-green-200 text-green-900",
-  }
+    default: "bg-black border-green-500 text-green-400",
+    warning: "bg-yellow-950 border-yellow-600 text-yellow-300",
+    error: "bg-red-950 border-red-600 text-red-300",
+    success: "bg-green-950 border-green-600 text-green-300",
+  };
 
-  const classes = `${baseClasses} ${variants[variant]} ${className}`
+  const classes = `${baseClasses} ${variants[variant]} ${className}`;
 
-  return <div className={classes}>{children}</div>
-}
+  return <div className={classes}>{children}</div>;
+};
 
 const AlertDescription = ({ children, className = "" }) => {
-  return <div className={`text-sm ${className}`}>{children}</div>
-}
+  return <div className={`text-sm text-green-300 ${className}`}>{children}</div>;
+};
 
-export { Alert, AlertDescription }
+export { Alert, AlertDescription };

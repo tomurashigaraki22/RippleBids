@@ -22,9 +22,9 @@ import "../App.css";
 import { XummPkce } from "xumm-oauth2-pkce";
 import { EsupportedWallet, Networks, XRPLKit } from "xrpl-wallet-kit"
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom"
-const client = new XRPLKit(EsupportedWallet.XUMM, Networks.TESTNET);
+const client = new XRPLKit(EsupportedWallet.XUMM, Networks.MAINNET);
 import { sepolia } from "@wagmi/chains";
-const xrplClient = new Client('wss://s.altnet.rippletest.net'); // Testnet
+const xrplClient = new Client(['wss://s1.ripple.com', 'wss://xrplcluster.com']);
 
 const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {
   redirectUrl: window.location.origin,  // This will use the current URL as redirect
@@ -74,6 +74,45 @@ const HomePage = () => {
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
+  async function getXrpBalance(address) {
+  try {
+    const response = await fetch("https://xrplcluster.com", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        method: "account_info",
+        params: [
+          {
+            account: address,
+            ledger_index: "validated",
+            strict: true
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const drops = data?.result?.account_data?.Balance;
+
+    // Convert from drops to XRP
+    return drops ? parseFloat(drops) / 1000000 : 0;
+  } catch (error) {
+    console.error("Failed to fetch XRP balance:", error);
+    return 0;
+  }
+}
+
+useEffect(() => {
+  if (xrplWallet){
+      setTimeout(() =>{
+        navigate(`/wallet-connected?address=${xrplWallet.address}&network=mainnet`)
+      }, 3000)
+  }
+}, [xrplWallet])
+
+
   useEffect(() => {
     // Handle OAuth redirect and events
     xumm.on("success", async () => {
@@ -83,17 +122,17 @@ const HomePage = () => {
         
         setXrplWallet({
           address: state.me.account,
-          network: 'testnet',
+          network: 'mainnet',
         });
 
         localStorage.setItem(LOCAL_KEY, xrplWallet)
 
-        const balance = await getBalance(state.me.account);
+        const balance = await getXrpBalance(state.me.account);
         setXrpBalance(balance);
         setCurrentStep(2);
 
         // Add URL parameters and navigate
-        navigate(`/wallet-connected?address=${state.me.account}&network=testnet`);
+
       } catch (err) {
         console.error("Error processing success:", err);
       }
@@ -144,7 +183,7 @@ const connectGemWallet = async () => {
 
       setXrplWallet({
       address: walletAddress,
-      network: 'testnet',
+      network: 'mainnet',
     });
 
     console.log("Balance:", balanceResult, "XRP");
@@ -157,12 +196,22 @@ const connectGemWallet = async () => {
 
 const disconnectWallet = async () => {
   try {
-    setXrplWallet(null); // Clear wallet state
+    // Step 1: Clear local wallet state
+    setXrplWallet(null);
+
+    // Step 2: Logout from XUMM session
+    await xumm.logout();
+
+    // Step 3 (Optional): Clear localStorage/sessionStorage if used
+    // localStorage.removeItem('xummSession');
+    // sessionStorage.removeItem('xummSession');
+
     console.log("Wallet disconnected.");
   } catch (error) {
     console.error("Error disconnecting wallet:", error);
   }
 };
+
 
 // async function connect() {
 //     xumm.authorize().catch((e) => console.log("e", e));
@@ -198,7 +247,7 @@ const login = async () => {
 
     setXrplWallet({
       address: state.me.account,
-      network: 'testnet',
+      network: 'mainnet',
     });
 
     const balance = await getBalance(state.me.account);
@@ -283,12 +332,12 @@ const logout = () => {
   }
 
 return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-white-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">XRP Bridge Tool</h1>
-          <p className="text-gray-600 text-lg">Bridge XRP from XRPL to EVM chains seamlessly</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2">XRP Bridge Tool</h1>
+          <p className="text-green-600 text-lg">Bridge XRP from XRPL to EVM chains seamlessly</p>
         </div>
         {xrplWallet !== null ? (
           <div
@@ -315,8 +364,8 @@ return (
                     currentStep > step.id
                       ? "bg-green-500 text-white"
                       : currentStep === step.id
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-600"
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-green-600"
                   }
                 `}
                 >
@@ -334,8 +383,8 @@ return (
             ))}
           </div>
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900">{steps[currentStep - 1]?.title}</h2>
-            <p className="text-gray-600">{steps[currentStep - 1]?.description}</p>
+            <h2 className="text-xl font-semibold text-green-900">{steps[currentStep - 1]?.title}</h2>
+            <p className="text-green-600">{steps[currentStep - 1]?.description}</p>
           </div>
         </div>
 
@@ -355,7 +404,7 @@ return (
                 {xrplWallet ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Address:</span>
+                      <span className="text-sm text-green-600">Address:</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono">{formatAddress(xrplWallet.address)}</span>
                         <Button size="sm" variant="ghost" onClick={() => copyToClipboard(xrplWallet.address)}>
@@ -364,7 +413,7 @@ return (
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Balance:</span>
+                      <span className="text-sm text-green-600">Balance:</span>
                       <span className="font-semibold">{xrpBalance} XRP</span>
                     </div>
                     <Badge variant="secondary" className="w-full justify-center">
@@ -372,7 +421,7 @@ return (
                     </Badge>
                   </div>
                 ) : (
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-green-500">
                     <Wallet className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Not connected</p>
                   </div>
@@ -392,7 +441,7 @@ return (
                 {metamaskWallet ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Address:</span>
+                      <span className="text-sm text-green-600">Address:</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono">{formatAddress(metamaskWallet.address)}</span>
                         <Button size="sm" variant="ghost" onClick={() => copyToClipboard(metamaskWallet.address)}>
@@ -401,7 +450,7 @@ return (
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">XRP Balance:</span>
+                      <span className="text-sm text-green-600">XRP Balance:</span>
                       <span className="font-semibold">{evmBalance.toFixed(2)} XRP</span>
                     </div>
                     <Badge variant="secondary" className="w-full justify-center">
@@ -409,7 +458,7 @@ return (
                     </Badge>
                   </div>
                 ) : (
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-green-500">
                     <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2"></div>
                     <p className="text-sm">Not connected</p>
                   </div>
@@ -426,17 +475,17 @@ return (
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <div className="text-center">
-                      <Wallet className="w-16 h-16 mx-auto mb-4 text-blue-500" />
+                      <Wallet className="w-16 h-16 mx-auto mb-4 text-green-500" />
                       <h3 className="text-2xl font-bold mb-2">Connect Your Xaman Wallet</h3>
-                      <p className="text-gray-600 mb-6">Connect your Xaman (XUMM) wallet to access your XRP balance</p>
+                      <p className="text-green-600 mb-6">Connect your Xaman (XUMM) wallet to access your XRP balance</p>
                     </div>
 
                     {showQR ? (
                       <div className="text-center space-y-4">
-                        <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg mx-auto flex items-center justify-center">
-                          <QrCode className="w-24 h-24 text-gray-400" />
+                        <div className="w-48 h-48 bg-zinc-800 border-2 border-dashed border-green-500 rounded-lg mx-auto flex items-center justify-center">
+                          <QrCode className="w-24 h-24 text-green-400" />
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-green-600">
                           {isMobile ? "Opening Xaman app..." : "Scan QR code with Xaman app"}
                         </p>
                         <div className="flex items-center justify-center gap-2">
@@ -461,13 +510,13 @@ return (
                         </Button>
 
                         <div className="text-center">
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-green-500">
                             Don't have Xaman?
                             <a
                               href="https://xumm.app"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-500 hover:underline ml-1"
+                              className="text-green-500 hover:underline ml-1"
                             >
                               Download here <ExternalLink className="w-3 h-3 inline" />
                             </a>
@@ -477,196 +526,13 @@ return (
                     )}
                   </div>
                 )}
-
-                {/* Step 2: Bridge XRP */}
-                {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <ArrowUpDown className="w-16 h-16 mx-auto mb-4 text-blue-500" />
-                      <h3 className="text-2xl font-bold mb-2">Bridge Your XRP</h3>
-                      <p className="text-gray-600 mb-6">Bridge XRP from XRPL to EVM sidechain for dApp compatibility</p>
-                    </div>
-
-                    {bridgeStatus === "idle" && (
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Amount to Bridge</label>
-                          <div className="relative">
-                            <Input
-                              type="number"
-                              placeholder="0.00"
-                              value={bridgeAmount}
-                              onChange={(e) => setBridgeAmount(e.target.value)}
-                              className="pr-16 h-12 text-lg"
-                            />
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <span className="text-gray-500 font-medium">XRP</span>
-                            </div>
-                          </div>
-                          <div className="flex justify-between text-sm text-gray-500 mt-1">
-                            <span>Available: {xrpBalance.toFixed(2)} XRP</span>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => setBridgeAmount(xrpBalance.toString())}
-                              className="p-0 h-auto"
-                            >
-                              Max
-                            </Button>
-                          </div>
-                        </div>
-
-                        <Alert>
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>
-                            Bridge fee: ~0.1 XRP. Transaction will be processed on XRPL EVM Sidechain.
-                          </AlertDescription>
-                        </Alert>
-
-                        <Button
-                          onClick={bridgeXRP}
-                          disabled={!bridgeAmount || Number.parseFloat(bridgeAmount) <= 0}
-                          className="w-full h-12 text-lg"
-                          size="lg"
-                        >
-                          <ArrowRight className="w-5 h-5 mr-2" />
-                          Bridge XRP
-                        </Button>
-                      </div>
-                    )}
-
-                    {bridgeStatus === "processing" && (
-                      <div className="space-y-6">
-                        <div className="text-center">
-                          <RefreshCw className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
-                          <h4 className="text-lg font-semibold mb-2">Processing Bridge Transaction</h4>
-                          <p className="text-gray-600">Bridging {bridgeAmount} XRP to EVM sidechain...</p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Progress</span>
-                            <span>{bridgeProgress}%</span>
-                          </div>
-                          <Progress value={bridgeProgress} className="h-2" />
-                        </div>
-
-                        <div className="text-center text-sm text-gray-500">
-                          <p>This may take a few minutes. Please don't close this window.</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {bridgeStatus === "completed" && (
-                      <div className="space-y-6">
-                        <div className="text-center">
-                          <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-                          <h4 className="text-lg font-semibold mb-2">Bridge Completed!</h4>
-                          <p className="text-gray-600">Successfully bridged {bridgeAmount} XRP to EVM sidechain</p>
-                        </div>
-
-                        {transactionHash && (
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">Transaction Hash:</span>
-                              <Button size="sm" variant="ghost" onClick={() => copyToClipboard(transactionHash)}>
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                            </div>
-                            <p className="text-sm font-mono text-gray-600 break-all">{transactionHash}</p>
-                          </div>
-                        )}
-
-                        <Button onClick={() => setCurrentStep(3)} className="w-full h-12 text-lg" size="lg">
-                          Continue to MetaMask
-                          <ArrowRight className="w-5 h-5 ml-2" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 3: Connect MetaMask */}
-                {currentStep === 3 && (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-orange-500 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-white rounded"></div>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">Connect MetaMask</h3>
-                      <p className="text-gray-600 mb-6">Connect MetaMask to access your bridged XRP on EVM chains</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <Button
-                        onClick={connectMetaMask}
-                        className="w-full h-12 text-lg bg-orange-500 hover:bg-orange-600"
-                        size="lg"
-                      >
-                        <div className="w-5 h-5 bg-white rounded mr-2"></div>
-                        Connect MetaMask
-                      </Button>
-
-                      <div className="text-center">
-                        <p className="text-sm text-gray-500">
-                          Don't have MetaMask?
-                          <a
-                            href="https://metamask.io/download/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline ml-1"
-                          >
-                            Install here <ExternalLink className="w-3 h-3 inline" />
-                          </a>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 4: Complete */}
-                {currentStep === 4 && (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-                      <h3 className="text-2xl font-bold mb-2">Setup Complete!</h3>
-                      <p className="text-gray-600 mb-6">Your XRP is now bridged and ready to use with Web3 dApps</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card className="p-4">
-                        <div className="text-center">
-                          <h4 className="font-semibold mb-2">XRPL Balance</h4>
-                          <p className="text-2xl font-bold text-blue-600">{xrpBalance.toFixed(2)} XRP</p>
-                        </div>
-                      </Card>
-                      <Card className="p-4">
-                        <div className="text-center">
-                          <h4 className="font-semibold mb-2">EVM Balance</h4>
-                          <p className="text-2xl font-bold text-green-600">{evmBalance.toFixed(2)} XRP</p>
-                        </div>
-                      </Card>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Button className="w-full h-12 text-lg" size="lg">
-                        <ExternalLink className="w-5 h-5 mr-2" />
-                        Visit RippleBids
-                      </Button>
-                      <Button variant="outline" className="w-full h-12 text-lg bg-transparent" size="lg">
-                        <ArrowUpDown className="w-5 h-5 mr-2" />
-                        Bridge More XRP
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
+        <div className="text-center mt-8 text-sm text-green-500">
           <p>Powered by XRPL EVM Sidechain • Secure • Decentralized</p>
         </div>
       </div>
