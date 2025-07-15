@@ -332,17 +332,17 @@ const logout = () => {
   }
 
 return (
-    <div className="min-h-screen bg-gradient-to-br from-white-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-black p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2">XRP Bridge Tool</h1>
-          <p className="text-green-600 text-lg">Bridge XRP from XRPL to EVM chains seamlessly</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-[#39FF14] mb-2">XRP Bridge Tool</h1>
+          <p className="text-white text-lg">Bridge XRP from XRPL to EVM chains seamlessly</p>
         </div>
         {xrplWallet !== null ? (
           <div
   onClick={disconnectWallet}
-  className="inline-block absolute z-999 top-10 right-10 px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-md cursor-pointer font-medium transition"
+  className="inline-block absolute z-999 top-10 right-10 px-3 py-1 text-sm bg-[#39FF14]/10 text-[#39FF14] hover:bg-[#39FF14]/20 rounded-md cursor-pointer font-medium transition"
 >
   Disconnect Wallet
 </div>
@@ -362,10 +362,10 @@ return (
                   w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
                   ${
                     currentStep > step.id
-                      ? "bg-green-500 text-white"
+                      ? "bg-[#39FF14] text-black"
                       : currentStep === step.id
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-200 text-green-600"
+                        ? "bg-[#39FF14] text-black"
+                        : "bg-gray-800 text-[#39FF14]"
                   }
                 `}
                 >
@@ -375,7 +375,7 @@ return (
                   <div
                     className={`
                     w-8 md:w-16 h-0.5 mx-2
-                    ${currentStep > step.id ? "bg-green-500" : "bg-gray-200"}
+                    ${currentStep > step.id ? "bg-[#39FF14]" : "bg-gray-800"}
                   `}
                   />
                 )}
@@ -383,8 +383,8 @@ return (
             ))}
           </div>
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-green-900">{steps[currentStep - 1]?.title}</h2>
-            <p className="text-green-600">{steps[currentStep - 1]?.description}</p>
+            <h2 className="text-xl font-semibold text-[#39FF14]">{steps[currentStep - 1]?.title}</h2>
+            <p className="text-white">{steps[currentStep - 1]?.description}</p>
           </div>
         </div>
 
@@ -393,35 +393,35 @@ return (
           {/* Left Column - Wallet Status */}
           <div className="lg:col-span-1 space-y-4">
             {/* XRPL Wallet */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
+            <Card className="card">
+              <CardHeader className="pb-3 border-b border-[#39FF14]/20">
+                <CardTitle className="text-lg flex items-center gap-2 text-[#39FF14]">
                   <Wallet className="w-5 h-5" />
                   XRPL Wallet
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="bg-black text-white">
                 {xrplWallet ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-green-600">Address:</span>
+                      <span className="text-sm text-[#39FF14]">Address:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono">{formatAddress(xrplWallet.address)}</span>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(xrplWallet.address)}>
+                        <span className="text-sm font-mono text-white">{formatAddress(xrplWallet.address)}</span>
+                        <Button size="sm" variant="ghost" className="hover:text-[#39FF14]" onClick={() => copyToClipboard(xrplWallet.address)}>
                           <Copy className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-green-600">Balance:</span>
-                      <span className="font-semibold">{xrpBalance} XRP</span>
+                      <span className="text-sm text-[#39FF14]">Balance:</span>
+                      <span className="font-semibold text-white">{xrpBalance} XRP</span>
                     </div>
-                    <Badge variant="secondary" className="w-full justify-center">
+                    <Badge className="w-full justify-center bg-[#39FF14]/10 text-[#39FF14]">
                       Connected
                     </Badge>
                   </div>
                 ) : (
-                  <div className="text-center text-green-500">
+                  <div className="text-center text-[#39FF14]">
                     <Wallet className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Not connected</p>
                   </div>
@@ -441,24 +441,24 @@ return (
                 {metamaskWallet ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-green-600">Address:</span>
+                      <span className="text-sm text-[#39FF14]">Address:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono">{formatAddress(metamaskWallet.address)}</span>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(metamaskWallet.address)}>
+                        <span className="text-sm font-mono text-white">{formatAddress(metamaskWallet.address)}</span>
+                        <Button size="sm" variant="ghost" className="hover:text-[#39FF14]" onClick={() => copyToClipboard(metamaskWallet.address)}>
                           <Copy className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-green-600">XRP Balance:</span>
-                      <span className="font-semibold">{evmBalance.toFixed(2)} XRP</span>
+                      <span className="text-sm text-[#39FF14]">XRP Balance:</span>
+                      <span className="font-semibold text-white">{evmBalance.toFixed(2)} XRP</span>
                     </div>
-                    <Badge variant="secondary" className="w-full justify-center">
+                    <Badge className="w-full justify-center bg-[#39FF14]/10 text-[#39FF14]">
                       Connected
                     </Badge>
                   </div>
                 ) : (
-                  <div className="text-center text-green-500">
+                  <div className="text-center text-[#39FF14]">
                     <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2"></div>
                     <p className="text-sm">Not connected</p>
                   </div>
@@ -469,23 +469,23 @@ return (
 
           {/* Right Column - Main Action */}
           <div className="lg:col-span-2">
-            <Card className="h-full">
-              <CardContent className="p-6">
+            <Card className="h-full card">
+              <CardContent className="p-6 bg-black text-white">
                 {/* Step 1: Connect XRPL Wallet */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <div className="text-center">
-                      <Wallet className="w-16 h-16 mx-auto mb-4 text-green-500" />
+                      <Wallet className="w-16 h-16 mx-auto mb-4 text-[#39FF14]" />
                       <h3 className="text-2xl font-bold mb-2">Connect Your Xaman Wallet</h3>
-                      <p className="text-green-600 mb-6">Connect your Xaman (XUMM) wallet to access your XRP balance</p>
+                      <p className="text-[#39FF14] mb-6">Connect your Xaman (XUMM) wallet to access your XRP balance</p>
                     </div>
 
                     {showQR ? (
                       <div className="text-center space-y-4">
-                        <div className="w-48 h-48 bg-zinc-800 border-2 border-dashed border-green-500 rounded-lg mx-auto flex items-center justify-center">
-                          <QrCode className="w-24 h-24 text-green-400" />
+                        <div className="w-48 h-48 bg-zinc-800 border-2 border-dashed border-[#39FF14] rounded-lg mx-auto flex items-center justify-center">
+                          <QrCode className="w-24 h-24 text-[#39FF14]" />
                         </div>
-                        <p className="text-sm text-green-600">
+                        <p className="text-sm text-[#39FF14]">
                           {isMobile ? "Opening Xaman app..." : "Scan QR code with Xaman app"}
                         </p>
                         <div className="flex items-center justify-center gap-2">
@@ -495,7 +495,7 @@ return (
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <Button onClick={login} className="w-full h-12 text-lg" size="lg">
+                        <Button onClick={login} className="w-full h-12 text-lg bg-[#39FF14] text-black hover:bg-[#39FF14]/90 transition-colors" size="lg">
                           {isMobile ? (
                             <>
                               <Smartphone className="w-5 h-5 mr-2" />
@@ -510,13 +510,13 @@ return (
                         </Button>
 
                         <div className="text-center">
-                          <p className="text-sm text-green-500">
+                          <p className="text-sm text-[#39FF14]">
                             Don't have Xaman?
                             <a
                               href="https://xumm.app"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-green-500 hover:underline ml-1"
+                              className="text-[#39FF14] hover:underline ml-1"
                             >
                               Download here <ExternalLink className="w-3 h-3 inline" />
                             </a>
@@ -532,7 +532,7 @@ return (
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-green-500">
+        <div className="text-center mt-8 text-sm text-[#39FF14]">
           <p>Powered by XRPL EVM Sidechain • Secure • Decentralized</p>
         </div>
       </div>
