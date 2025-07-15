@@ -2,10 +2,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/Card"
 import Button from "../components/Button"
 import { Client } from 'xrpl';
-import Input from "../components/Input"
 import Badge from "../components/Badge"
-import Progress from "../components/Progress"
-import { Alert, AlertDescription } from "../components/Alert"
 import {
   Wallet,
   ArrowRight,
@@ -23,7 +20,6 @@ import { XummPkce } from "xumm-oauth2-pkce";
 import { EsupportedWallet, Networks, XRPLKit } from "xrpl-wallet-kit"
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom"
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.MAINNET);
-import { sepolia } from "@wagmi/chains";
 const xrplClient = new Client('wss://s1.ripple.com');
 
 const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {
@@ -59,8 +55,6 @@ const HomePage = () => {
   const [xrpBalance, setXrpBalance] = useState(0)
   const [evmBalance, setEvmBalance] = useState(0)
   const [bridgeAmount, setBridgeAmount] = useState("")
-  const [bridgeStatus, setBridgeStatus] = useState("idle")
-  const [transactionHash, setTransactionHash] = useState("")
   const [isMobile, setIsMobile] = useState(false)
   const [showQR, setShowQR] = useState(false)
   const [bridgeProgress, setBridgeProgress] = useState(0)

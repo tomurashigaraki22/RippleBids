@@ -72,7 +72,6 @@ function App() {
     <BrowserRouter>
 
       <QueryClientProvider client={queryClient}>
-        <WagmiConfig config={wagmiConfig}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/wallet-connected" element={<WalletConnected />} />
@@ -80,7 +79,6 @@ function App() {
             <Route path="/bridge" element={<BridgeXRP/>}/>
 
           </Routes>
-        </WagmiConfig>
       </QueryClientProvider>
 
     </BrowserRouter>
