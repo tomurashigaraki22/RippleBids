@@ -14,7 +14,7 @@ import { createConfig, injected, WagmiConfig } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { metaMask, safe, walletConnect } from "wagmi/connectors";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.MAINNET);
-const xrplClient = new Client(['wss://s1.ripple.com', 'wss://xrplcluster.com']);
+const xrplClient = new Client('wss://s1.ripple.com');
 
 
 const projectId = '7f999d777dd494df9a3038f609665cea'; // get this from https://cloud.walletconnect.com

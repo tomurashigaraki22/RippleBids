@@ -24,7 +24,7 @@ import { EsupportedWallet, Networks, XRPLKit } from "xrpl-wallet-kit"
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom"
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.MAINNET);
 import { sepolia } from "@wagmi/chains";
-const xrplClient = new Client(['wss://s1.ripple.com', 'wss://xrplcluster.com']);
+const xrplClient = new Client('wss://s1.ripple.com');
 
 const xumm = new XummPkce('6f42c09e-9637-49f2-8d90-d79f89b9d437', {
   redirectUrl: window.location.origin,  // This will use the current URL as redirect

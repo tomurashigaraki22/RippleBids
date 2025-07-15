@@ -32,7 +32,7 @@ function WalletConnected() {
   const getBalance = async (addr) => {
   console.log("getting balance");
   setLoadingBalance(true);
-  const client = new Client("wss://s.altnet.rippletest.net"); // ✅ Move inside
+const xrplClient = new Client('wss://s1.ripple.com');
   try {
     await client.connect();
     const res = await client.request({
