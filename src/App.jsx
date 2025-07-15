@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "reac
 import WalletConnected from "./pages/WalletConnected";
 import HomePage from "./pages/Home";
 import BridgeXRP from "./pages/BridgeXRP";
-import { sepolia as sepoliaBase } from "@wagmi/chains";
+import { mainnet } from "@wagmi/chains";  // Change import to mainnet
 import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi";
 import {SquidWidget} from "@0xsquid/widget";
 import { createConfig, injected, WagmiConfig } from "wagmi";
@@ -21,23 +21,11 @@ const projectId = '7f999d777dd494df9a3038f609665cea'; // get this from https://c
 
 const metadata = {
   name: 'RippleBids',
-  description: 'Bridge XRP to EVM',
+  description: 'Bridge XRP to EVM Mainnet',
   url: 'https://ripplebids.pxxl.pro',
 };
 
-const sepolia = {
-  ...sepoliaBase,
-  rpcUrls: {
-    default: {
-      http: ['https://rpc.sepolia.org'],
-    },
-    public: {
-      http: ['https://rpc.sepolia.org'],
-    },
-  },
-};
-
-const chains = [sepolia];
+const chains = [mainnet];
 
 const wagmiConfig = createConfig({
   chains,
@@ -72,6 +60,7 @@ function App() {
     <BrowserRouter>
 
       <QueryClientProvider client={queryClient}>
+        <WagmiConfig config={wagmiConfig}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/wallet-connected" element={<WalletConnected />} />
@@ -79,6 +68,7 @@ function App() {
             <Route path="/bridge" element={<BridgeXRP/>}/>
 
           </Routes>
+        </WagmiConfig>
       </QueryClientProvider>
 
     </BrowserRouter>
