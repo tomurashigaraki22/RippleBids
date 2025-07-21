@@ -54,6 +54,7 @@ export default function WalletConnected() {
         const xrp = Number.parseFloat(drops) / 1_000_000
         setBalance(xrp.toFixed(6))
       } else {
+        console.log("AA: ", data)
         setBalanceError("Account not found")
       }
     } catch (err) {
@@ -220,7 +221,7 @@ export default function WalletConnected() {
                 </div>
 
                 {/* Balance Display */}
-                <div className="glass-card p-4 bg-[#39FF14]/5 border-[#39FF14]/30">
+                {/* <div className="glass-card p-4 bg-[#39FF14]/5 border-[#39FF14]/30">
                   <div className="flex items-center justify-between">
                     <span className="text-[#39FF14] font-medium">Balance:</span>
                     <div className="flex items-center gap-2">
@@ -236,7 +237,7 @@ export default function WalletConnected() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
 
