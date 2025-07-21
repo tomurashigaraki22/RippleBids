@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { Copy, Wallet, LinkIcon, RefreshCcw, CheckCircle, ArrowRight, Shield, Zap } from "lucide-react"
 import QRCode from "react-qr-code"
+import { useConnect, useAccount } from "wagmi"
 
 const LOCAL_KEY = "rippleBridgeProgress"
 const ETHEREUM_MAINNET_CHAIN_ID = 1
@@ -21,8 +22,8 @@ export default function WalletConnected() {
 
 
   const [isMobile, setIsMobile] = useState(false)
-  const [evmWallet, setEvmWallet] = useState(null)
-  const [isConnected, setIsConnected] = useState(false)
+  const { address: evmWallet, isConnected } = useAccount();
+
   const [copySuccess, setCopySuccess] = useState(false)
 
   const getBalance = async (addr) => {
@@ -75,8 +76,8 @@ export default function WalletConnected() {
     }
   }, [address])
 
-  const connectEvmWallet = async () => {
-    try {
+const connectEvmWallet = async () => {
+  try {
     setConnecting(true);
     console.log("Connectors: ", connectors);
 
@@ -87,48 +88,56 @@ export default function WalletConnected() {
       return;
     }
 
+    // 🛑 Check if it's already connected
+    if (metamaskConnector.ready && metamaskConnector.options?.getProvider) {
+      const provider = await metamaskConnector.options.getProvider();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      if (accounts.length > 0) {
+        console.log("Already connected:", accounts[0]);
+        setEvmWallet(accounts[0]);
+        setIsConnected(true);
+        return; // Skip connecting again
+      }
+    }
+
     const res = await connectAsync({ connector: metamaskConnector });
     console.log("Connected:", res);
 
     if (!res || !res.accounts?.length) {
       alert("Failed to connect MetaMask.");
       return;
-
     }
 
-        // Ethereum Mainnet Chain ID
-    const ETHEREUM_MAINNET_CHAIN_ID = 1;
+    setEvmWallet(res.accounts[0]);
+    setIsConnected(true);
 
+    // Ensure chain is Ethereum Mainnet
     const currentChainIdHex = await window.ethereum?.request({ method: 'eth_chainId' });
     const currentChainId = parseInt(currentChainIdHex, 16);
 
-      if (currentChainId !== ETHEREUM_MAINNET_CHAIN_ID) {
-        try {
-                 await switchChain({
-          chainId: ETHEREUM_MAINNET_CHAIN_ID,
-          addEthereumChainParameter: {
-            chainName: "Ethereum Mainnet",
-            nativeCurrency: {
-              name: "Ether",
-              symbol: "ETH",
-              decimals: 18,
-            },
-            rpcUrls: ["https://rpc.ankr.com/eth"],
-            blockExplorerUrls: ["https://etherscan.io"],
-          },
+    if (currentChainId !== ETHEREUM_MAINNET_CHAIN_ID) {
+      try {
+        await window.ethereum?.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x1' }],
         });
       } catch (err) {
         console.error("Error switching to Ethereum Mainnet:", err);
         alert("Please switch to Ethereum Mainnet manually in MetaMask.");
       }
-      }
-    } catch (error) {
-         console.error("MetaMask connection error:", error);
-    alert("Failed to connect MetaMask. Ensure MetaMask is installed and on Ethereum Mainnet.");
+    }
+  } catch (error) {
+    if (error.name === "ConnectorAlreadyConnectedError") {
+      console.warn("Already connected. Ignoring...");
+    } else {
+      console.error("MetaMask connection error:", error);
+      alert("Failed to connect MetaMask. Ensure MetaMask is installed and on Ethereum Mainnet.");
+    }
   } finally {
     setConnecting(false);
   }
 };
+
 
 
 

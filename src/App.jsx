@@ -63,6 +63,7 @@ function App() {
         <WagmiConfig config={wagmiConfig}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="*" element={<HomePage />} />
             <Route path="/wallet-connected" element={<WalletConnected />} />
 
             <Route path="/bridge" element={<BridgeXRP/>}/>
