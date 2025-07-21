@@ -54,6 +54,7 @@ const HomePage = () => {
   const navigate = useNavigate()
   const [metamaskWallet, setMetamaskWallet] = useState(null)
   const [xrpBalance, setXrpBalance] = useState(0)
+  const [bridgeStatus, setBridgeStatus] = useState("")
   const [evmBalance, setEvmBalance] = useState(0)
   const [bridgeAmount, setBridgeAmount] = useState("")
   const [isMobile, setIsMobile] = useState(false)
