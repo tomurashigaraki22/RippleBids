@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { Copy, Wallet, LinkIcon, RefreshCcw, CheckCircle, ArrowRight, Shield, Zap } from "lucide-react"
 import QRCode from "react-qr-code"
-import { useConnect, useAccount } from "wagmi"
+import { useConnect, useAccount, useDisconnect } from "wagmi"
 
 const LOCAL_KEY = "rippleBridgeProgress"
 const ETHEREUM_MAINNET_CHAIN_ID = 1
@@ -23,6 +23,7 @@ export default function WalletConnected() {
 
   const [isMobile, setIsMobile] = useState(false)
   const { address: evmWallet, isConnected } = useAccount();
+  const { disconnect, disconnectAsync } = useDisconnect()
 
   const [copySuccess, setCopySuccess] = useState(false)
 
@@ -108,8 +109,7 @@ const connectEvmWallet = async () => {
       return;
     }
 
-    setEvmWallet(res.accounts[0]);
-    setIsConnected(true);
+
 
     // Ensure chain is Ethereum Mainnet
     const currentChainIdHex = await window.ethereum?.request({ method: 'eth_chainId' });
@@ -127,6 +127,7 @@ const connectEvmWallet = async () => {
       }
     }
   } catch (error) {
+    console.log("Error: ", error)
     if (error.name === "ConnectorAlreadyConnectedError") {
       console.warn("Already connected. Ignoring...");
     } else {
@@ -146,8 +147,7 @@ const connectEvmWallet = async () => {
 
 
   const disconnectEvmWallet = () => {
-    setEvmWallet(null)
-    setIsConnected(false)
+    disconnect()
   }
 
   const copyToClipboard = async (text) => {
