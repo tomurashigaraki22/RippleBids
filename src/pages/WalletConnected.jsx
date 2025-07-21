@@ -17,6 +17,9 @@ export default function WalletConnected() {
   const [loadingBalance, setLoadingBalance] = useState(false)
   const [balanceError, setBalanceError] = useState(null)
   const [connecting, setConnecting] = useState(false)
+  const { connectAsync, isPending, connectors, connect } = useConnect();
+
+
   const [isMobile, setIsMobile] = useState(false)
   const [evmWallet, setEvmWallet] = useState(null)
   const [isConnected, setIsConnected] = useState(false)
@@ -74,48 +77,64 @@ export default function WalletConnected() {
 
   const connectEvmWallet = async () => {
     try {
-      setConnecting(true)
+    setConnecting(true);
+    console.log("Connectors: ", connectors);
 
-      if (typeof window.ethereum === "undefined") {
-        alert("MetaMask is not installed. Please install MetaMask first.")
-        window.open("https://metamask.io/download/", "_blank")
-        return
-      }
+    const metamaskConnector = connectors.find((c) => c.id === "metaMaskSDK");
 
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      })
+    if (!metamaskConnector) {
+      alert("MetaMask connector not found.");
+      return;
+    }
 
-      if (!accounts || accounts.length === 0) {
-        alert("Failed to connect MetaMask.")
-        return
-      }
+    const res = await connectAsync({ connector: metamaskConnector });
+    console.log("Connected:", res);
 
-      setEvmWallet(accounts[0])
-      setIsConnected(true)
+    if (!res || !res.accounts?.length) {
+      alert("Failed to connect MetaMask.");
+      return;
 
-      // Check and switch to Ethereum Mainnet
-      const currentChainIdHex = await window.ethereum.request({ method: "eth_chainId" })
-      const currentChainId = Number.parseInt(currentChainIdHex, 16)
+    }
+
+        // Ethereum Mainnet Chain ID
+    const ETHEREUM_MAINNET_CHAIN_ID = 1;
+
+    const currentChainIdHex = await window.ethereum?.request({ method: 'eth_chainId' });
+    const currentChainId = parseInt(currentChainIdHex, 16);
 
       if (currentChainId !== ETHEREUM_MAINNET_CHAIN_ID) {
         try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x1" }], // Ethereum Mainnet
-          })
-        } catch (switchError) {
-          console.error("Error switching to Ethereum Mainnet:", switchError)
-          alert("Please switch to Ethereum Mainnet manually in MetaMask.")
-        }
+                 await switchChain({
+          chainId: ETHEREUM_MAINNET_CHAIN_ID,
+          addEthereumChainParameter: {
+            chainName: "Ethereum Mainnet",
+            nativeCurrency: {
+              name: "Ether",
+              symbol: "ETH",
+              decimals: 18,
+            },
+            rpcUrls: ["https://rpc.ankr.com/eth"],
+            blockExplorerUrls: ["https://etherscan.io"],
+          },
+        });
+      } catch (err) {
+        console.error("Error switching to Ethereum Mainnet:", err);
+        alert("Please switch to Ethereum Mainnet manually in MetaMask.");
+      }
       }
     } catch (error) {
-      console.error("MetaMask connection error:", error)
-      alert("Failed to connect MetaMask. Please try again.")
-    } finally {
-      setConnecting(false)
-    }
+         console.error("MetaMask connection error:", error);
+    alert("Failed to connect MetaMask. Ensure MetaMask is installed and on Ethereum Mainnet.");
+  } finally {
+    setConnecting(false);
   }
+};
+
+
+
+
+
+
 
   const disconnectEvmWallet = () => {
     setEvmWallet(null)
