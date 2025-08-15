@@ -695,7 +695,7 @@ return (
             <div className="glass-card p-6 inline-block">
               <div className="flex items-center justify-center gap-4 text-[#39FF14] glow-text-subtle">
                 <Shield className="w-5 h-5" />
-                <span>Powered by XRPL EVM Sidechain</span>
+                <span>Powered by Squid Router</span>
                 <div className="w-1 h-1 bg-[#39FF14] rounded-full"></div>
                 <span>Secure</span>
                 <div className="w-1 h-1 bg-[#39FF14] rounded-full"></div>
