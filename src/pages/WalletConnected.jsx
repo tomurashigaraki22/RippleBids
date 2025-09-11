@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { Copy, Wallet, LinkIcon, RefreshCcw, CheckCircle, ArrowRight, Shield, Zap } from "lucide-react"
 import QRCode from "react-qr-code"
 import { useConnect, useAccount, useDisconnect } from "wagmi"
+import BackToMarketplaceButton from "../components/Back"
 
 const LOCAL_KEY = "rippleBridgeProgress"
 const ETHEREUM_MAINNET_CHAIN_ID = 1
@@ -192,6 +193,7 @@ const connectEvmWallet = async () => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#39FF14]/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-3/4 left-3/4 w-64 h-64 bg-[#39FF14]/8 rounded-full blur-2xl animate-pulse delay-500"></div>
       </div>
+      <BackToMarketplaceButton/>
 
       <div className="relative px-4 py-20 flex flex-col items-center justify-start">
         <div className="w-full max-w-2xl">

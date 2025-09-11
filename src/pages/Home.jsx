@@ -20,6 +20,7 @@ import "../App.css";
 import { XummPkce } from "xumm-oauth2-pkce";
 import { EsupportedWallet, Networks, XRPLKit } from "xrpl-wallet-kit"
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom"
+import BackToMarketplaceButton from "../components/Back";
 const client = new XRPLKit(EsupportedWallet.XUMM, Networks.MAINNET);
 const xrplClient = new Client('wss://s1.ripple.com');
 
@@ -335,6 +336,7 @@ return (
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#39FF14]/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-3/4 left-3/4 w-64 h-64 bg-[#39FF14]/8 rounded-full blur-2xl animate-pulse delay-500"></div>
       </div>
+      <BackToMarketplaceButton/>
 
       <div className="relative p-4 py-20">
         <div className="max-w-6xl mx-auto">

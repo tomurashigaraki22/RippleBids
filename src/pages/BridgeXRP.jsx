@@ -6,6 +6,7 @@ import { XummSdk } from "xumm-sdk";
 import { Globe } from "lucide-react";
 import { XummPkce } from "xumm-oauth2-pkce";
 import { SquidWidget } from "@0xsquid/widget";
+import BackToMarketplaceButton from "../components/Back";
 
 const XRPL_RPC = "wss://s.altnet.rippletest.net:51233";
 const AXELAR_GATEWAY = "r4DVHyEisbgQRAXCiMtP2xuz5h3dDkwqf1";
@@ -205,6 +206,7 @@ const confirmAndSend = async () => {
 
   return (
 <div className="max-w-lg mx-auto">
+      <BackToMarketplaceButton/>
               <div className="glass-card p-8 mb-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-[#39FF14]/20 rounded-full flex items-center justify-center">
